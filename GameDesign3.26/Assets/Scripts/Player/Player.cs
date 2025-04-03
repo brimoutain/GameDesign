@@ -15,38 +15,68 @@ public class Player : MonoBehaviour
     public float facingDir = 1;
 
     public float health = 100;
+    public float moveSpeed;
 
     public bool isTriggerCalled = false;
     public Transform attackCheckPoint;
     public Weapon weapon = null;
 
+    public int payerID;
+    [SerializeField] private LayerMask whatIsGround;
+    public Transform groundCheckPoint;
+
+    public bool isHit = false;
+
     #region State
-    public Player1IdleState idleState {  get; private set; }
-    public Player1MoveState moveState {  get; private set; }
+    public PlayerIdleState idleState {  get; private set; }
+    public PlayerMoveState moveState {  get; private set; }
+    public PlayerJumpState jumpState { get; private set; }
+    public PlayerAttackState attackState { get; private set; }
+    public PlayerGroundState groundState { get; private set; }
+    public PlayerAirState airState { get; private set; }
     #endregion
 
 
     private void Awake()
     {
         stateMachine = new PlayerStateMachine();
-        idleState = new Player1IdleState(stateMachine,this,"Idle");
-        moveState = new Player1MoveState(stateMachine,this,"Move");
+        idleState = new PlayerIdleState(stateMachine,this,"Idle");
+        moveState = new PlayerMoveState(stateMachine,this,"Move");
+        jumpState = new PlayerJumpState(stateMachine,this,"Jump");
+        attackState = new PlayerAttackState(stateMachine, this, "Attack");
+        groundState = new PlayerGroundState(stateMachine, this, "Idle");
+        airState = new PlayerAirState(stateMachine, this, "Jump");
+        
+        stateMachine.InitializeState(idleState);
     }
 
     private void Start()
     {
-        anim = GetComponentInChildren<Animator>();
         rb = GetComponent<Rigidbody2D>();
+        if(payerID == 2)
+        {
+            isFaceRight = false;
+        }
+    }
+
+    private void Update()
+    {
+        stateMachine.currentState.Update();
+        //Debug.Log(stateMachine.currentState.ToString());
     }
 
     public void SetVelocity(float xVelocity)
     {
-        rb.velocity = new Vector2 (xVelocity, 0);
+        rb.velocity = new Vector2 (xVelocity, rb.velocity.y);
         CheckFlip(xVelocity);
     }
      //检测地面,不一定加
-     public bool isGroundDetected() => Physics2D.Raycast(transform.position, new Vector2(transform.position.x, transform.position.y + 1));
+     public bool isGroundDetected() => Physics2D.Raycast(groundCheckPoint.position, Vector2.down,.5f,whatIsGround);
 
+    private void OnDrawGizmos()
+    {
+        Gizmos.DrawLine(groundCheckPoint.position, new Vector3(groundCheckPoint.position.x, groundCheckPoint.position.y - .5f));
+    }
     #region Flip
     private void CheckFlip(float _x)
     {
@@ -67,27 +97,64 @@ public class Player : MonoBehaviour
     }
     #endregion
 
-    public void Damage(float damage,float forceStrength)
+    public void Damage(float damage)
     {
         health -= damage;
-        //待修改
-        
+        //待修改       
     }
+
+    public void FreezePlayer()
+    {
+        // 禁用状态机，禁止任何状态更新
+        this.enabled = false;
+
+        // 禁用动画播放
+        if (anim != null) anim.enabled = false;
+
+        // 停止刚体运动
+        if (rb != null)
+        {
+            rb.velocity = Vector2.zero;
+            rb.isKinematic = true;  // 防止任何外力影响
+        }
+
+        Debug.Log($"{gameObject.name}已被冻结");
+    }
+
+    public void UnfreezePlayer()
+    {
+        // 启用状态机，恢复状态更新
+        this.enabled = true;
+
+        // 启用动画播放
+        if (anim != null) anim.enabled = true;
+
+        // 恢复刚体运动状态
+        if (rb != null) rb.isKinematic = false;
+
+        Debug.Log($"{gameObject.name}已解除冻结");
+    }
+
 
     private void OnCollisionEnter2D(Collision2D collision)
     {
-        if(collision.gameObject.tag == "Weapon")
+        if (collision.gameObject.CompareTag("Weapon"))
         {
-            for (int i = 0; i < 6; i++) 
-            { 
-                if(collision.gameObject == GameManager.Instance.arsenal[i])
-                {
-                    weapon = collision.gameObject.GetComponent<Weapon>();
-                    break;
-                }
+            // 丢弃现有武器（如果有）
+            if (weapon != null && weapon.TryGetComponent<IWeapon>(out var currentWeapon))
+            {
+                currentWeapon.DropWeapon();
             }
-            Destroy(collision.gameObject);
-            //进入武器状态
+
+            // 拾取新武器
+            weapon = collision.gameObject.GetComponent<Weapon>();
+            if (weapon.TryGetComponent<IWeapon>(out var newWeaponLogic))
+            {
+                    newWeaponLogic.SetOwner(this.GetComponent<Fighter>().playerID, attackCheckPoint, attackCheckPoint);
+            }
+            //记得设置bool
+            anim.SetBool(collision.ToString(), true);
         }
     }
+
 }

@@ -1,6 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Burst.CompilerServices;
 using UnityEngine;
+using static UnityEditor.Experimental.GraphView.GraphView;
 
 public class AnimationFinished : MonoBehaviour
 {
@@ -17,32 +19,41 @@ public class AnimationFinished : MonoBehaviour
 
     public void AttackFinish()
     {
-        if(weapon != null)
-        {
-            //若有武器，则根据武器数据造成伤害和击退
-            animFinishHealder?.Invoke(weapon.weaponDamage,weapon.hitDistance); 
-        }else
-        {
-            //若无武器，则为手刃
-            animFinishHealder?.Invoke(1f,0);
-        }
         player.isTriggerCalled = true;
+        
+        if (player.weapon != null
+    && player.weapon.TryGetComponent<IWeapon>(out var weaponLogic)
+    && !(player.weapon is CameraWeapon cameraWeapon && cameraWeapon.isFrozen))
+        {
+            weapon.EndAnim("Attack");
+            weapon.EndAnim("Special");
+            weaponLogic.PerformAttack(); // 调用当前武器统一攻击方法
+        }
+        else
+        {
+            AttackTrigger(1, 1f);
+        }
     }
 
-    public void AttackTrigger(float damage,float hitDistance)
+    public void AttackTrigger(int damage, float hitDistance)
     {
-        Collider2D[] colliders = Physics2D.OverlapCircleAll(player.attackCheckPoint.position, weapon.attackCheckRadius);
-
-        foreach (var hit in colliders)
+        Collider2D[] hits = Physics2D.OverlapCircleAll(player.attackCheckPoint.position, 1);
+        foreach (Collider2D hit in hits)
         {
-            if (hit.GetComponent<Player>() != null)
+            Fighter fighter = hit.GetComponent<Fighter>();
+            if (fighter != null && fighter.playerID != player.payerID)
             {
-                hit.GetComponent<Player>().Damage(damage, weapon.hitDistance);
-                hit.GetComponent<Player>().rb.AddForce(new Vector2(player.facingDir * hitDistance, hitDistance));
+                EnemyHealth hp = hit.GetComponent<EnemyHealth>();
+                if (hp != null) hp.TakeDamage(damage);
+                //Transform enemyTf = hit.transform;
+                //Vector2 knockDir = (enemyTf.position - attackOrigin.position).normalized;
+                //enemyTf.position += (Vector3)(knockDir * knockbackForce);
+                hit.gameObject.GetComponent<Rigidbody2D>().AddForce(new Vector2(hitDistance*player.facingDir, hitDistance));
+                //Debug.Log($"【画笔击退】{hit.name} 击退 {knockDir} → {enemyTf.position}");
             }
         }
     }
 
 }
 
-public delegate void AnimationFinishedDelegate(float damage,float HitDistance);
+public delegate void AnimationFinishedDelegate(int damage,float HitDistance);
