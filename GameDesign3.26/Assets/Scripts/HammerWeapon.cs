@@ -51,8 +51,6 @@ public class HammerWeapon : Weapon, IWeapon
         weaponDamage = 18f;           // 默认以大锤伤害为基准（后续动态调整）
         hitDistance = 6f;             // 默认以大锤击退为基准（后续动态调整）
         attackCheckRadius = 2.5f;     // 根据大锤范围(5格)取半径2.5
-
-        boolName = "Attack";
     }
 
     void Update()
@@ -85,7 +83,13 @@ public class HammerWeapon : Weapon, IWeapon
             Debug.Log (required);
             if (chargeTimer >= required)
             {
-                AnimPlay("Attack");
+                if (required == smallChargeTime)
+                {
+                    AnimPlay("Attack");
+                }else if (required == largeChargeTime)
+                {
+                    AnimPlay("Special");
+                }
                 chargeTimer = 0f;
                 isCharging = false;
             }
@@ -118,8 +122,8 @@ public class HammerWeapon : Weapon, IWeapon
         isHeld = false;
         ownerID = -1;
 
-        transform.SetParent(null);
         transform.position = holder.position + Vector3.right * 1.5f;
+        transform.SetParent(null);
 
         if (col != null) col.enabled = true;
         if (rb != null) rb.simulated = true;

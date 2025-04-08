@@ -32,7 +32,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0.02, z: 0}
-  m_LocalScale: {x: 9.65, y: 9.65, z: 9.65}
+  m_LocalScale: {x: 0.5, y: 0.5, z: 0.5}
   m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 0}
@@ -78,7 +78,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 2
-  m_Sprite: {fileID: 21300000, guid: f69107d7c161aa2438c58d2cd3d055a6, type: 3}
+  m_Sprite: {fileID: 401783278, guid: 30843a89e9099f64082624f327616ada, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -105,10 +105,10 @@ MonoBehaviour:
   hitDistance: 0
   attackCheckRadius: 0
   groundAnimName: 
-  boolName: 
   freezeDuration: 10
   ownerID: -1
   isHeld: 0
+  isFrozen: 0
 --- !u!95 &4708181714571899579
 Animator:
   serializedVersion: 5
@@ -165,8 +165,8 @@ BoxCollider2D:
   m_Offset: {x: 0, y: 0}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
-    pivot: {x: 0.5, y: 0.5}
-    oldSize: {x: 0.32, y: 0.32}
+    pivot: {x: 0.5, y: 0.3}
+    oldSize: {x: 4.5, y: 4.306299}
     newSize: {x: 0.32, y: 0.32}
     adaptiveTilingThreshold: 0.5
     drawMode: 0

@@ -1,7 +1,6 @@
 using JetBrains.Annotations;
 using System.Collections;
 using System.Collections.Generic;
-using UnityEditor.Tilemaps;
 using UnityEngine;
 
 public class Player : MonoBehaviour
@@ -14,7 +13,7 @@ public class Player : MonoBehaviour
     private bool isFaceRight = true;
     public float facingDir = 1;
 
-    public float health = 100;
+    public float health = 50;
     public float moveSpeed;
 
     public bool isTriggerCalled = false;

@@ -7,8 +7,11 @@ public class GameManager : MonoBehaviour
 {
     public static GameManager Instance;
 
-    public Player player1;
-    public Player player2;
+    public EnemyHealth player1;
+    public EnemyHealth player2;
+
+    public GameObject player1Health;
+    public GameObject player2Health;
 
     public GameObject[] arsenal;
     public GameObject weapon1;
@@ -48,9 +51,20 @@ public class GameManager : MonoBehaviour
 
     private void Update()
     {
-        if(player1.health <= 0 || player2.health <= 0)
+        if (player1.health <= 0 || player2.health <= 0 || Input.GetKeyDown(KeyCode.Escape))
         {
             SceneManager.LoadScene("Menu", LoadSceneMode.Single);
         }
+        Debug.Log(player1.healthSlider);
+         player1Health.transform.position = new Vector3(
+         player1.healthSlider,
+         player1Health.transform.position.y,
+         player1Health.transform.position.z
+         );
+        player2Health.transform.position = new Vector3(
+        player2.healthSlider,
+        player1Health.transform.position.y,
+        player1Health.transform.position.z
+        );
     }
 }
